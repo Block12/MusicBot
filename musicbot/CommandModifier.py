@@ -38,6 +38,9 @@ class CommandModifier:
         
     def modifyUsingGacha(self, command):
         return self._gacha.roll(command)
+    
+    def modifyUsingCreate(self, command):
+        return self._aliases.create_alias(command[0], command[1])
         
     def get(self, original_command, original_args):
         log.debug("get called. original_command: {}, original_args:{}".format(
@@ -56,6 +59,13 @@ class CommandModifier:
             modified_command, *modified_args = modified_command.split(" ")
         elif modified_command == "" and original_command == "gacha":
             modified_command = self.modifyUsingGacha(" ".join(original_args))
+            modified_command, *modified_args = modified_command.split(" ")
+            original_args = []
+        elif modified_command == "create":
+            modified_command = self.modifyUsingCreate(modified_args)
+            modified_command, *modified_args = modified_command.split(" ")
+        elif modified_command == "" and original_command == "create":
+            modified_command = self.modifyUsingCreate(original_args)
             modified_command, *modified_args = modified_command.split(" ")
             original_args = []
  

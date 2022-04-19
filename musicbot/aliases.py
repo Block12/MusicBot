@@ -59,6 +59,26 @@ class Aliases:
         ret = self.aliases.get(arg)
         return ret if ret else ""
 
+    def create_alias(self, alias_name, alias_for):
+        """
+        Creates new alias that will be added to current alias json in given config
+        """
+        ret = self.aliases.get(alias_name)
+        if ret != "":
+            raise HelpfulError(
+                "Alias already exists:",
+                "{alias_name} is an alias for {ret}".format(
+                    alias_name=alias_name, ret=ret
+                ),
+            )
+
+        self.aliases[alias_name] = "[p {alias_for}]".format(alias_for=alias_for)
+        
+        with open(self.aliases_file, "w") as outfile:
+            json.dump(self.aliases, outfile)
+            outfile.flush()
+            outfile.close()
+
 
 class AliasesDefault:
     aliases_file = "config/aliases.json"
