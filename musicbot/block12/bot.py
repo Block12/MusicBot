@@ -9,6 +9,7 @@ from musicbot.billboard.Manager import Manager as BillboardManager
 from musicbot.bot import MusicBot
 from musicbot.constructs import Response
 from musicbot.CommandModifier import CommandModifier
+from musicbot.constructs import Response
 from musicbot.gacha import GachaDefault
 
 
@@ -71,7 +72,35 @@ class Block12MusicBot(MusicBot):
             response = "Invalid arguments provided. args: {}".format(str(leftover_args))
                 
         return None if response is None else Response(response)
+
+    async def cmd_gacha_internal(self, channel, leftover_args):
+        log.info("cmd_gacha called. leftover_args: {}".format(
+            str(leftover_args)
+        ))
+        response = None
+        subcommand = None if len(leftover_args) < 1 else leftover_args[0]
         
+        if subcommand == "rates":
+            gacha_command = None if len(leftover_args) < 2 else leftover_args[1]
+            log.debug("displaying rates. gacha_command: {}".format(str(gacha_command)))
+            
+            if self.config.embeds:
+                embeds = self.command_modifier.generateDiscordEmbedForRates(gacha_command)
+                if len(embeds) <= 0:
+                    response = "No rates found{}.".format("" if gacha_command is None else " for " + gacha_command)
+                else:
+                    for embed in embeds:
+                        await self.safe_send_message(channel, embed)
+            else:
+                response = "Embeds are disabled. Unable to display gacha rates."
+        elif subcommand == None:
+            response = "No arguments provided."
+        else:
+            log.debug("subcommand not recognized: {}".format(subcommand))
+            response = "Invalid arguments provided. args: {}".format(str(leftover_args))
+            
+        return None if response is None else Response(response)
+
     @overrides(MusicBot)
     def _init_player(self, player, *args, guild = None):
         Block12MusicPlayerInjector(player)
@@ -86,7 +115,7 @@ class Block12MusicBot(MusicBot):
             aliases_file if self.config.usealias else None,
             gacha_file if self.config.usegacha else None)
         self.should_command_modifier_be_used = self.config.usealias or self.config.usegacha
-        
+
     def _dumpSongInfoToLogsIfAllowed(self, guild_id, author):
         log.debug("_dumpSongInfoToLogsIfAllowed called.")
         permissions = self.permissions.for_user(author)
